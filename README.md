@@ -10,11 +10,11 @@ This project features two distinct yet complementary modules for optimizing tran
 ### 1. Land Routing Module (`land.py`)
 
 #### 🧠 System Design
-- **Type**: GUI-based desktop application using **Tkinter**
+- **Type**: GUI-based desktop application using **StreamLit**
 - **Architecture**: Three-tier client-server model
-  - **Presentation Layer**: Tkinter GUI for input/output
-  - **Logic Layer**: Dijkstra-based route calculation with traffic simulation
-  - **Data Layer**: OpenRouteService API for routing and geocoding
+  - **Presentation Layer**: GUI for input/output
+  - **Logic Layer**: Dijkstra-based route calculation with traffic simulation (Manually)
+  - **Data Layer**: OpenRouteService API for Mapinformation, Graph and geocoding
 
 #### ⚙️ Key Components
 - **Geocoding**: `geopy.Nominatim` for address-to-coordinates conversion
@@ -23,11 +23,6 @@ This project features two distinct yet complementary modules for optimizing tran
   - Multiple alternate routes
 - **Mapping**: `folium` for interactive map visualization with traffic indicators
 - **Traffic Visualization**: Google Maps-style traffic segments (green/orange/red)
-
-#### 🔌 Communication
-- HTTPS requests to OpenRouteService (REST API)
-- Local file I/O for saving HTML-based maps
-- Opens output maps in the default web browser
 
 ---
 
