@@ -1,4 +1,3 @@
-
 import openrouteservice
 from geopy.geocoders import Nominatim
 import folium
@@ -10,6 +9,7 @@ import random
 ORS_API_KEY = '5b3ce3597851110001cf6248788d76fba8b84392a515456e938e8834'
 client = openrouteservice.Client(key=ORS_API_KEY)
 geolocator = Nominatim(user_agent="land_routing_app")
+FUEL_PRICE_PER_LITER = 100  # INR
 
 # ====== FUNCTIONS ======
 
@@ -29,15 +29,25 @@ def haversine(coord1, coord2):
     dlambda = math.radians(lon2 - lon1)
     a = math.sin(dphi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2)**2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
 def get_route_geometry(start_coords, end_coords):
     try:
-        response = client.directions(
-            coordinates=[start_coords[::-1], end_coords[::-1]],
-            profile='driving-car',
-            format='geojson',
-            alternative_routes={"share_factor": 0.6, "target_count": 2}
-        )
+        distance_est = haversine(start_coords, end_coords) * 1000  # in meters
+
+        if distance_est <= 150000:
+            # Safe to include alternate routes
+            response = client.directions(
+                coordinates=[start_coords[::-1], end_coords[::-1]],
+                profile='driving-car',
+                format='geojson',
+                alternative_routes={"share_factor": 0.6, "target_count": 2}
+            )
+        else:
+            # Too long for alternate routes – use primary route only
+            response = client.directions(
+                coordinates=[start_coords[::-1], end_coords[::-1]],
+                profile='driving-car',
+                format='geojson'
+            )
 
         routes = []
         for feature in response['features']:
@@ -77,14 +87,14 @@ def dijkstra(graph, start, end):
                 previous[neighbor] = current_node
                 heapq.heappush(queue, (distance, neighbor))
 
-    # Reconstruct path
     path = []
     node = end
     while node is not None:
         path.insert(0, node)
         node = previous[node]
 
-    return path, distances[end]
+    total_weight = distances[end]
+    return path, total_weight
 
 def get_traffic_data(coords):
     traffic = []
@@ -101,7 +111,8 @@ def calculate_metrics(distance_km, traffic_factor=1.0):
     speed_kmph = base_speed_kmph * (1 - traffic_factor*0.4)
     time_hr = distance_km / speed_kmph
     fuel_l = distance_km / efficiency_kmpl
-    return time_hr, fuel_l, speed_kmph
+    cost = fuel_l * FUEL_PRICE_PER_LITER
+    return time_hr, fuel_l, speed_kmph, cost
 
 def plot_route(routes, traffic_data_list):
     m = folium.Map(location=routes[0][0], zoom_start=7)
@@ -143,12 +154,14 @@ def main():
 
             graph = build_graph(route)
             path, distance = dijkstra(graph, route[0], route[-1])
-            time, fuel, speed = calculate_metrics(distance, sum(traffic_data)/len(traffic_data))
+            avg_traffic = sum(traffic_data)/len(traffic_data)
+            time, fuel, speed, cost = calculate_metrics(distance, avg_traffic)
 
             print(f"\n=== ROUTE OPTION {routes.index(route)+1} ===")
-            print(f"Distance: {distance:.2f} km")
+            print(f"Total Distance (Weight): {distance:.2f} km")
             print(f"Estimated Time: {time:.2f} hrs (avg speed: {speed:.1f} km/h)")
             print(f"Fuel Usage: {fuel:.2f} L")
+            print(f"Estimated Fuel Cost: ₹{cost:.2f}")
 
         plot_route(routes, traffic_data_list)
 
