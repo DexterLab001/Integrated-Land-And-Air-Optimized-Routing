@@ -8,7 +8,7 @@ import os
 import time
 
 # --- CONFIGURATION ---
-AVIATION_STACK_KEY = os.getenv('AVIATION_STACK_KEY', 'b60f1c05c484d680ab81a01cd9bd7990')
+AVIATION_STACK_KEY = os.getenv('AVIATION_STACK_KEY', 'a2f8de218fb5016b41c2e50740ba5740')
 AVIATION_STACK_URL = "http://api.aviationstack.com/v1"
 REQUEST_DELAY = 1  # seconds between API requests to avoid rate limiting
 MAX_CONNECTION_DEPTH = 2
