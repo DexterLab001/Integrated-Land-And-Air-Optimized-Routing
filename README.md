@@ -29,7 +29,7 @@ This project features two distinct yet complementary modules for optimizing tran
 ### 2. Air Routing Module (`air_routing.py`)
 
 #### 🧠 System Design
-- **Type**: Command-line application
+- **Type**: Command-line application for testing and Streamlit for GUI
 - **Architecture**: Batch processing system with real-time API integration
 
 #### ⚙️ Core Features
